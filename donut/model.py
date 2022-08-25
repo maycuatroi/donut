@@ -418,6 +418,7 @@ class DonutModel(PreTrainedModel):
         prompt_tensors: Optional[torch.Tensor] = None,
         return_json: bool = True,
         return_attentions: bool = False,
+        file_name:str= "",
     ):
         """
         Generate a token sequence in an auto-regressive manner,
@@ -431,6 +432,7 @@ class DonutModel(PreTrainedModel):
             prompt_tensors: (1, sequence_length)
                 convert image to tensor if prompt_tensor is not fed
         """
+        print(f"Inference: {file_name}")
         # prepare backbone inputs (image and prompt)
         if image is None and image_tensors is None:
             raise ValueError("Expected either image or image_tensors")
