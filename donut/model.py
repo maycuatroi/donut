@@ -448,8 +448,7 @@ class DonutModel(PreTrainedModel):
             image_tensors = image_tensors.half()
             image_tensors = image_tensors.to(self.device)
         else:
-            # image_tensors = image_tensors.to(torch.bfloat16)
-            pass
+            image_tensors = image_tensors.to(torch.bfloat16)
 
         if prompt_tensors is None:
             prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
