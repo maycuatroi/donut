@@ -40,12 +40,12 @@ class SwinEncoder(nn.Module):
     """
 
     def __init__(
-        self,
-        input_size: List[int],
-        align_long_axis: bool,
-        window_size: int,
-        encoder_layer: List[int],
-        name_or_path: Union[str, bytes, os.PathLike] = None,
+            self,
+            input_size: List[int],
+            align_long_axis: bool,
+            window_size: int,
+            encoder_layer: List[int],
+            name_or_path: Union[str, bytes, os.PathLike] = None,
     ):
         super().__init__()
         self.input_size = input_size
@@ -78,8 +78,8 @@ class SwinEncoder(nn.Module):
                 if x.endswith("relative_position_index") or x.endswith("attn_mask"):
                     pass
                 elif (
-                    x.endswith("relative_position_bias_table")
-                    and self.model.layers[0].blocks[0].attn.window_size[0] != 12
+                        x.endswith("relative_position_bias_table")
+                        and self.model.layers[0].blocks[0].attn.window_size[0] != 12
                 ):
                     pos_bias = swin_state_dict[x].unsqueeze(0)[0]
                     old_len = int(math.sqrt(len(pos_bias)))
@@ -110,8 +110,8 @@ class SwinEncoder(nn.Module):
         """
         img = img.convert("RGB")
         if self.align_long_axis and (
-            (self.input_size[0] > self.input_size[1] and img.width > img.height)
-            or (self.input_size[0] < self.input_size[1] and img.width < img.height)
+                (self.input_size[0] > self.input_size[1] and img.width > img.height)
+                or (self.input_size[0] < self.input_size[1] and img.width < img.height)
         ):
             img = rotate(img, angle=-90, expand=True)
         img = resize(img, min(self.input_size))
@@ -150,7 +150,7 @@ class BARTDecoder(nn.Module):
     """
 
     def __init__(
-        self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None
+            self, decoder_layer: int, max_position_embeddings: int, name_or_path: Union[str, bytes, os.PathLike] = None
     ):
         super().__init__()
         self.decoder_layer = decoder_layer
@@ -172,7 +172,7 @@ class BARTDecoder(nn.Module):
                 add_final_layer_norm=True,
             )
         )
-        self.model.forward = self.forward  #  to get cross attentions and utilize `generate` function
+        self.model.forward = self.forward  # to get cross attentions and utilize `generate` function
 
         self.model.config.is_encoder_decoder = True  # to get cross-attention
         self.add_special_tokens(["<sep/>"])  # <sep/> is used for representing a list in a JSON
@@ -189,7 +189,8 @@ class BARTDecoder(nn.Module):
                         self.resize_bart_abs_pos_emb(
                             bart_state_dict[x],
                             self.max_position_embeddings
-                            + 2,  # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
+                            + 2,
+                            # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
                         )
                     )
                 elif x.endswith("embed_tokens.weight") or x.endswith("lm_head.weight"):
@@ -219,25 +220,25 @@ class BARTDecoder(nn.Module):
         if past is not None:
             input_ids = input_ids[:, -1:]
         output = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "past_key_values": past,
-            "use_cache": use_cache,
+            "input_ids":             input_ids,
+            "attention_mask":        attention_mask,
+            "past_key_values":       past,
+            "use_cache":             use_cache,
             "encoder_hidden_states": model_kwargs["encoder_outputs"].last_hidden_state,
         }
         return output
 
     def forward(
-        self,
-        input_ids,
-        attention_mask: Optional[torch.Tensor] = None,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        past_key_values: Optional[torch.Tensor] = None,
-        labels: Optional[torch.Tensor] = None,
-        use_cache: bool = None,
-        output_attentions: Optional[torch.Tensor] = None,
-        output_hidden_states: Optional[torch.Tensor] = None,
-        return_dict: bool = None,
+            self,
+            input_ids,
+            attention_mask: Optional[torch.Tensor] = None,
+            encoder_hidden_states: Optional[torch.Tensor] = None,
+            past_key_values: Optional[torch.Tensor] = None,
+            labels: Optional[torch.Tensor] = None,
+            use_cache: bool = None,
+            output_attentions: Optional[torch.Tensor] = None,
+            output_hidden_states: Optional[torch.Tensor] = None,
+            return_dict: bool = None,
     ):
         """
         A forward fucntion to get cross attentions and utilize `generate` function
@@ -344,16 +345,16 @@ class DonutConfig(PretrainedConfig):
     model_type = "donut"
 
     def __init__(
-        self,
-        input_size: List[int] = [2560, 1920],
-        align_long_axis: bool = False,
-        window_size: int = 10,
-        encoder_layer: List[int] = [2, 2, 14, 2],
-        decoder_layer: int = 4,
-        max_position_embeddings: int = None,
-        max_length: int = 1536,
-        name_or_path: Union[str, bytes, os.PathLike] = "",
-        **kwargs,
+            self,
+            input_size: List[int] = [2560, 1920],
+            align_long_axis: bool = False,
+            window_size: int = 10,
+            encoder_layer: List[int] = [2, 2, 14, 2],
+            decoder_layer: int = 4,
+            max_position_embeddings: int = None,
+            max_length: int = 1536,
+            name_or_path: Union[str, bytes, os.PathLike] = "",
+            **kwargs,
     ):
         super().__init__()
         self.input_size = input_size
@@ -411,14 +412,14 @@ class DonutModel(PreTrainedModel):
         return decoder_outputs
 
     def inference(
-        self,
-        image: PIL.Image = None,
-        prompt: str = None,
-        image_tensors: Optional[torch.Tensor] = None,
-        prompt_tensors: Optional[torch.Tensor] = None,
-        return_json: bool = True,
-        return_attentions: bool = False,
-        file_name:str= "",
+            self,
+            image: PIL.Image = None,
+            prompt: str = None,
+            image_tensors: Optional[torch.Tensor] = None,
+            prompt_tensors: Optional[torch.Tensor] = None,
+            return_json: bool = True,
+            return_attentions: bool = False,
+            file_name: str = "",
     ):
         """
         Generate a token sequence in an auto-regressive manner,
@@ -432,7 +433,8 @@ class DonutModel(PreTrainedModel):
             prompt_tensors: (1, sequence_length)
                 convert image to tensor if prompt_tensor is not fed
         """
-        print(f"Inference: {file_name}")
+        if file_name:
+            print(f"Inference: {file_name}")
         # prepare backbone inputs (image and prompt)
         if image is None and image_tensors is None:
             raise ValueError("Expected either image or image_tensors")
@@ -446,7 +448,8 @@ class DonutModel(PreTrainedModel):
             image_tensors = image_tensors.half()
             image_tensors = image_tensors.to(self.device)
         else:
-            image_tensors = image_tensors.to(torch.bfloat16)
+            # image_tensors = image_tensors.to(torch.bfloat16)
+            pass
 
         if prompt_tensors is None:
             prompt_tensors = self.decoder.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")["input_ids"]
@@ -454,7 +457,7 @@ class DonutModel(PreTrainedModel):
         prompt_tensors = prompt_tensors.to(self.device)
 
         last_hidden_state = self.encoder(image_tensors)
-        if self.device.type != "cuda":
+        if self.device.type != "cuda" and last_hidden_state.dtype != torch.float32:
             last_hidden_state = last_hidden_state.to(torch.float32)
 
         encoder_outputs = ModelOutput(last_hidden_state=last_hidden_state, attentions=None)
@@ -490,7 +493,7 @@ class DonutModel(PreTrainedModel):
 
         if return_attentions:
             output["attentions"] = {
-                "self_attentions": decoder_output.decoder_attentions,
+                "self_attentions":  decoder_output.decoder_attentions,
                 "cross_attentions": decoder_output.cross_attentions,
             }
 
@@ -513,9 +516,9 @@ class DonutModel(PreTrainedModel):
                     if update_special_tokens_for_json_key:
                         self.decoder.add_special_tokens([fr"<s_{k}>", fr"</s_{k}>"])
                     output += (
-                        fr"<s_{k}>"
-                        + self.json2token(obj[k], update_special_tokens_for_json_key, sort_json_key)
-                        + fr"</s_{k}>"
+                            fr"<s_{k}>"
+                            + self.json2token(obj[k], update_special_tokens_for_json_key, sort_json_key)
+                            + fr"</s_{k}>"
                     )
                 return output
         elif type(obj) == list:
@@ -561,16 +564,16 @@ class DonutModel(PreTrainedModel):
                         for leaf in content.split(r"<sep/>"):
                             leaf = leaf.strip()
                             if (
-                                leaf in self.decoder.tokenizer.get_added_vocab()
-                                and leaf[0] == "<"
-                                and leaf[-2:] == "/>"
+                                    leaf in self.decoder.tokenizer.get_added_vocab()
+                                    and leaf[0] == "<"
+                                    and leaf[-2:] == "/>"
                             ):
                                 leaf = leaf[1:-2]  # for categorical special tokens
                             output[key].append(leaf)
                         if len(output[key]) == 1:
                             output[key] = output[key][0]
 
-                tokens = tokens[tokens.find(end_token) + len(end_token) :].strip()
+                tokens = tokens[tokens.find(end_token) + len(end_token):].strip()
                 if tokens[:6] == r"<sep/>":  # non-leaf nodes
                     return [output] + self.token2json(tokens[6:], is_inner_value=True)
 
@@ -581,10 +584,10 @@ class DonutModel(PreTrainedModel):
 
     @classmethod
     def from_pretrained(
-        cls,
-        pretrained_model_name_or_path: Union[str, bytes, os.PathLike],
-        *model_args,
-        **kwargs,
+            cls,
+            pretrained_model_name_or_path: Union[str, bytes, os.PathLike],
+            *model_args,
+            **kwargs,
     ):
         r"""
         Instantiate a pretrained donut model from a pre-trained model configuration
@@ -594,18 +597,20 @@ class DonutModel(PreTrainedModel):
                 Name of a pretrained model name either registered in huggingface.co. or saved in local,
                 e.g., `naver-clova-ix/donut-base`, or `naver-clova-ix/donut-base-finetuned-rvlcdip`
         """
-        model = super(DonutModel, cls).from_pretrained(pretrained_model_name_or_path, revision="official", *model_args, **kwargs)
+        model = super(DonutModel, cls).from_pretrained(pretrained_model_name_or_path, revision="official", *model_args,
+                                                       **kwargs)
 
         # truncate or interplolate position embeddings of donut decoder
         max_length = kwargs.get("max_length", model.config.max_position_embeddings)
         if (
-            max_length != model.config.max_position_embeddings
+                max_length != model.config.max_position_embeddings
         ):  # if max_length of trained model differs max_length you want to train
             model.decoder.model.model.decoder.embed_positions.weight = torch.nn.Parameter(
                 model.decoder.resize_bart_abs_pos_emb(
                     model.decoder.model.model.decoder.embed_positions.weight,
                     max_length
-                    + 2,  # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
+                    + 2,
+                    # https://github.com/huggingface/transformers/blob/v4.11.3/src/transformers/models/mbart/modeling_mbart.py#L118-L119
                 )
             )
             model.config.max_position_embeddings = max_length
