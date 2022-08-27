@@ -50,7 +50,7 @@ setup(
     ),
     python_requires=">=3.7",
     install_requires=[
-        "transformers>=4.11.3",
+        "git+https://github.com/huggingface/transformers.git",
         "timm",
         "datasets[vision]",
         "pytorch-lightning>=1.6.4",
