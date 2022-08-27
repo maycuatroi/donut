@@ -129,7 +129,6 @@ class DonutDataset(Dataset):
             labels : masked labels (model doesn't need to predict prompt and pad token)
         """
         sample = self.dataset[idx]
-        print(sample)
         # inputs
         image = sample["image"].convert('RGB')
         pixel_values = self.processor(image, random_padding=self.split == "train",
