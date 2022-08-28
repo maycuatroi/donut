@@ -50,7 +50,7 @@ setup(
     ),
     python_requires=">=3.7",
     install_requires=[
-        "git+https://github.com/huggingface/transformers.git",
+        "datasets",
         "timm",
         "datasets[vision]",
         "pytorch-lightning>=1.6.4",
@@ -58,6 +58,9 @@ setup(
         "sentencepiece",
         "zss",
         "sconf>=0.2.3",
+    ],
+    dependency_links=[
+        "https://github.com/huggingface/transformers",
     ],
     classifiers=[
         "Intended Audience :: Developers",

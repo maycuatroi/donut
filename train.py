@@ -22,22 +22,8 @@ from pytorch_lightning.utilities import rank_zero_only
 from sconf import Config
 
 from donut import DonutDataset
+from donut.checkpoints import DonutCheckpointIO
 from lightning_module import DonutDataPLModule, DonutModelPLModule
-
-
-class CustomCheckpointIO(CheckpointIO):
-    def save_checkpoint(self, checkpoint, path, storage_options=None):
-        del checkpoint["state_dict"]
-        torch.save(checkpoint, path)
-
-    def load_checkpoint(self, path, storage_options=None):
-        checkpoint = torch.load(path + "artifacts.ckpt")
-        state_dict = torch.load(path + "pytorch_model.bin")
-        checkpoint["state_dict"] = {"model." + key: value for key, value in state_dict.items()}
-        return checkpoint
-
-    def remove_checkpoint(self, path) -> None:
-        return super().remove_checkpoint(path)
 
 
 @rank_zero_only
@@ -61,18 +47,18 @@ def train(config):
     datasets = {"train": [], "validation": []}
     for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
         task_name = os.path.basename(dataset_name_or_path)  # e.g., cord-v2, docvqa, rvlcdip, ...
-        
+
         # add categorical special tokens (optional)
         if task_name == "rvlcdip":
             model_module.model.decoder.add_special_tokens([
-                "<advertisement/>", "<budget/>", "<email/>", "<file_folder/>", 
-                "<form/>", "<handwritten/>", "<invoice/>", "<letter/>", 
-                "<memo/>", "<news_article/>", "<presentation/>", "<questionnaire/>", 
+                "<advertisement/>", "<budget/>", "<email/>", "<file_folder/>",
+                "<form/>", "<handwritten/>", "<invoice/>", "<letter/>",
+                "<memo/>", "<news_article/>", "<presentation/>", "<questionnaire/>",
                 "<resume/>", "<scientific_publication/>", "<scientific_report/>", "<specification/>"
             ])
         if task_name == "docvqa":
             model_module.model.decoder.add_special_tokens(["<yes/>", "<no/>"])
-            
+
         for split in ["train", "validation"]:
             datasets[split].append(
                 DonutDataset(
@@ -111,14 +97,14 @@ def train(config):
         mode="min",
     )
 
-    custom_ckpt = CustomCheckpointIO()
+    io_check_point = DonutCheckpointIO()
     trainer = pl.Trainer(
         resume_from_checkpoint=config.get("resume_from_checkpoint_path", None),
         num_nodes=config.get("num_nodes", 1),
         gpus=torch.cuda.device_count(),
         strategy="ddp",
         accelerator="gpu",
-        plugins=custom_ckpt,
+        plugins=io_check_point,
         max_epochs=config.max_epochs,
         max_steps=config.max_steps,
         val_check_interval=config.val_check_interval,
@@ -137,6 +123,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--exp_version", type=str, required=False)
+    parser.set_defaults(config="config/train_vn_menu.yaml")
+    parser.set_defaults(exp_version="hackathon")
     args, left_argv = parser.parse_known_args()
 
     config = Config(args.config)
